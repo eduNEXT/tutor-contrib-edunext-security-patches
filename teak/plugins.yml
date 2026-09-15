@@ -1,11 +1,14 @@
 # Self-hosted Tutor plugin index for the POC.
 #
-# This makes the repo consumable end-to-end WITHOUT a separate index repo:
+# LAYOUT: tutor resolves an index as <index-url>/<release>/plugins.yml, so this file
+# lives at teak/plugins.yml (release=teak, from TUTOR_APP_NAME). The index-url added
+# by the consumer is the repo branch root:
 #   tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-contrib-edunext-security-patches/teak/
+#   -> tutor fetches .../teak/<release=teak>/plugins.yml  (this file)
 #   tutor plugins install edunext-security-patches
 #   tutor plugins enable edunext-security-patches
 #
-# `tutor plugins index add <url>/` fetches <url>/plugins.yml (this file). `install`
+# `install`
 # then pip-installs `src` on the build host — this is why it bypasses picasso's
 # rejection of raw `pip install git+...` in run-extra-commands.
 #

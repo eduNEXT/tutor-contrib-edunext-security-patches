@@ -56,8 +56,9 @@ tutorsecuritypatches/
 > `pip install git+...` in `PICASSO_EXTRA_COMMANDS` is also rejected by picasso's
 > validator. The sanctioned path is a **tutor plugin index** (same as mfe/sentry/aspects).
 
-This repo **self-hosts its own index** (`plugins.yml` at the root) so it is
-consumable end-to-end without a separate index repo. In `<namespace>/build/config.yml`,
+This repo **self-hosts its own index** (`teak/plugins.yml` — tutor resolves an index
+as `<index-url>/<release>/plugins.yml`) so it is consumable end-to-end without a
+separate index repo. In `<namespace>/build/config.yml`,
 `PICASSO_EXTRA_COMMANDS`:
 
 ```yaml
