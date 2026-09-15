@@ -1,0 +1,46 @@
+# Security patch manifest — Open edX TEAK release.
+#
+# This file lives on the `teak` branch. The branch IS the release contract:
+# every patch here is authored against the teak edx-platform revision below.
+# A different release (sumac, redwood…) lives on its own branch with its own
+# manifest + patch set. Never mix.
+release: teak
+
+# Minimum Tutor version this patch set was validated against.
+tutor_min: v20.0.0
+
+# Upstream ref the CI compat gate applies patches against (`git apply --check`).
+edx_platform_repo: https://github.com/openedx/edx-platform.git
+edx_platform_ref: open-release/teak.master
+
+# ---------------------------------------------------------------------------
+# edx-platform git patches — applied in listed order inside the checkout via
+# `git apply` (hook: openedx-dockerfile-post-git-checkout).
+# Order matters when patches depend on each other's context.
+# ---------------------------------------------------------------------------
+edx_platform:
+  - file: 01-heartbeat-demo.patch
+    cve: DEMO
+    description: >
+      POC demo patch (migrated from santodomingo mypatch.patch): adds an
+      "azimut" flag to the heartbeat endpoint. Stands in for a real edx-platform
+      security patch such as pdfjs/mathjax/exif in a client monorepo.
+
+# ---------------------------------------------------------------------------
+# MFE npm security fixes — injected per MFE (hook: mfe-dockerfile-pre-npm-install-<app>).
+# Only takes effect for MFEs the client actually builds; inert otherwise.
+# Example below mirrors the real CVE-2025-58754 (axios) handling from SOA.
+# ---------------------------------------------------------------------------
+mfe:
+  # axios TRANSITIVE (via @edx/frontend-platform) -> force via npm overrides
+  learning:
+    - cve: CVE-2025-58754
+      run: >-
+        npm pkg set overrides.axios="^1.15.0" &&
+        npm install --package-lock-only --no-audit --no-fund
+  # axios DIRECT dependency in vulnerable range -> bump the direct dep
+  discussions:
+    - cve: CVE-2025-58754
+      run: >-
+        npm pkg set dependencies.axios="^0.30.2" &&
+        npm install --package-lock-only --no-audit --no-fund

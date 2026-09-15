@@ -1,0 +1,3 @@
+include tutorsecuritypatches/patches/*.patch
+include tutorsecuritypatches/patches/*.yml
+include README.md

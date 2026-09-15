@@ -1,0 +1,13 @@
+# This is my example patch
+#
+diff --git a/openedx/core/djangoapps/heartbeat/views.py b/openedx/core/djangoapps/heartbeat/views.py
+index a3615a2..123f06b 100644
+--- a/openedx/core/djangoapps/heartbeat/views.py
++++ b/openedx/core/djangoapps/heartbeat/views.py
+@@ -33,5 +33,5 @@ def heartbeat(request):
+ 
+     if status_code == 503:
+         log.error('Heartbeat check failed (%s): %s', status_code, check_results)
+-
++    check_results["azimut"] = True
+     return JsonResponse(check_results, status=status_code)

@@ -1,0 +1,24 @@
+# Self-hosted Tutor plugin index for the POC.
+#
+# This makes the repo consumable end-to-end WITHOUT a separate index repo:
+#   tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-contrib-edunext-security-patches/teak/
+#   tutor plugins install edunext-security-patches
+#   tutor plugins enable edunext-security-patches
+#
+# `tutor plugins index add <url>/` fetches <url>/plugins.yml (this file). `install`
+# then pip-installs `src` on the build host — this is why it bypasses picasso's
+# rejection of raw `pip install git+...` in run-extra-commands.
+#
+# The VERSION PIN lives here. Bump `@teak/vX.Y.Z` and update plugins.yml on the
+# release branch to roll a new patch set to consumers on their next build.
+#
+# PRODUCTION: move this entry into the central index (eduNEXT/tutor-plugin-indexes)
+# so all clients share one index; the self-hosted copy is a POC convenience only.
+
+- name: edunext-security-patches
+  src: git+https://github.com/eduNEXT/tutor-contrib-edunext-security-patches@teak/v1.0.0
+  url: https://github.com/eduNEXT/tutor-contrib-edunext-security-patches
+  index: contrib
+  author: eduNEXT
+  maintainer: eduNEXT
+  description: Shared eduNEXT security patches for Open edX (branch-per-release, teak).

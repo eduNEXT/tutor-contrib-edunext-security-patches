@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tutor-contrib-edunext-security-patches"
+version = "1.0.0"
+description = "Shared eduNEXT security patches for Open edX, as a Tutor plugin (branch-per-release)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "eduNEXT" }]
+dependencies = ["tutor", "click", "pyyaml"]
+
+[project.entry-points."tutor.plugin.v1"]
+edunext-security-patches = "tutorsecuritypatches.plugin"
+
+[tool.setuptools]
+packages = ["tutorsecuritypatches"]
+
+# Ship the .patch files and manifest as package data so the pip-installed plugin
+# is self-contained (no build-context COPY needed).
+[tool.setuptools.package-data]
+tutorsecuritypatches = ["patches/*.patch", "patches/*.yml"]

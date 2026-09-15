@@ -1,0 +1,54 @@
+name: patch-compat
+
+# Compatibility gate: prove every bundled patch still applies cleanly against the
+# upstream edx-platform revision this branch targets. Runs on push/PR to a release
+# branch. If upstream drifts and a patch no longer applies, this fails LOUD here
+# instead of at a client's image build.
+
+on:
+  push:
+    branches: [teak, sumac, redwood]
+  pull_request:
+    branches: [teak, sumac, redwood]
+
+jobs:
+  git-apply-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - name: Read manifest
+        id: manifest
+        run: |
+          pip install pyyaml
+          REPO=$(python -c "import yaml;print(yaml.safe_load(open('plugin/tutorsecuritypatches/patches/manifest.yml'))['edx_platform_repo'])")
+          REF=$(python -c "import yaml;print(yaml.safe_load(open('plugin/tutorsecuritypatches/patches/manifest.yml'))['edx_platform_ref'])")
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          echo "ref=$REF"   >> "$GITHUB_OUTPUT"
+
+      - name: Checkout edx-platform (${{ steps.manifest.outputs.ref }})
+        run: |
+          git clone --depth 1 --branch "${{ steps.manifest.outputs.ref }}" \
+            "${{ steps.manifest.outputs.repo }}" edx-platform
+
+      - name: git apply --check every patch (in manifest order)
+        run: |
+          set -euo pipefail
+          cd edx-platform
+          python - <<'PY' > /tmp/order.txt
+          import yaml
+          m = yaml.safe_load(open("../plugin/tutorsecuritypatches/patches/manifest.yml"))
+          for e in m.get("edx_platform", []):
+              print(e["file"])
+          PY
+          while read -r f; do
+            [ -z "$f" ] && continue
+            echo "::group::git apply --check $f"
+            git apply --check --verbose "../plugin/tutorsecuritypatches/patches/$f"
+            git apply "../plugin/tutorsecuritypatches/patches/$f"   # apply so later patches see the context
+            echo "::endgroup::"
+          done < /tmp/order.txt
+          echo "All patches applied cleanly against ${{ steps.manifest.outputs.ref }}."
