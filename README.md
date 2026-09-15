@@ -56,29 +56,40 @@ tutorsecuritypatches/
 > `pip install git+...` in `PICASSO_EXTRA_COMMANDS` is also rejected by picasso's
 > validator. The sanctioned path is a **tutor plugin index** (same as mfe/sentry/aspects).
 
-This repo **self-hosts its own index** (`teak/plugins.yml` — tutor resolves an index
-as `<index-url>/<release>/plugins.yml`) so it is consumable end-to-end without a
-separate index repo. In `<namespace>/build/config.yml`,
-`PICASSO_EXTRA_COMMANDS`:
+A Tutor plugin must be installed on the **build host** (where `tutor` renders the
+Dockerfile), not inside the image. Picasso's `run-extra-commands` validator rejects
+raw `pip install git+…`, so a git-only plugin is installed **from a Tutor plugin
+index** — same as `sentry`/`aspects`. (Do NOT put it in
+`OPENEDX_EXTRA_PIP_REQUIREMENTS`: that installs inside the image at runtime — too late
+for build-time hooks. That var is for runtime deps like `eox-tenant`.)
 
-```yaml
-PICASSO_EXTRA_COMMANDS:
-- tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-contrib-edunext-security-patches/teak/
-- tutor plugins install mfe mfe-extensions sentry aspects edunext-security-patches
-- tutor plugins enable edunext-security-patches
-- tutor config save
-```
+1. Register the plugin in the central index `eduNEXT/tutor-plugin-indexes`, one line
+   per release under `<release>/plugins.yml` (git `src`, like `aspects`):
 
-Then remove the corresponding `.patch` files and their `COPY/git apply` lines from
-`build/plugins/azimutcli-apply-src-plugin.yml`. Rebuild with Picasso.
+   ```yaml
+   - name: edunext-security-patches
+     src: 'git+https://github.com/eduNEXT/tutor-contrib-edunext-security-patches@teak'
+     url: 'https://github.com/eduNEXT/tutor-contrib-edunext-security-patches'
+     ...
+   ```
 
-- The **version pin** (`@teak/v1.0.0`) lives in `plugins.yml`, not per-monorepo.
-- **Prod rule:** pin an immutable **tag**, never a branch — a branch is mutable and
-  breaks reproducible builds.
-- **Production:** move the `plugins.yml` entry into the central index
-  (`eduNEXT/tutor-plugin-indexes`) so all clients share one index; per-release index
-  branches (e.g. `teak-soa`) enable staged rollout. The self-hosted index is a POC
-  convenience.
+2. In `<namespace>/build/config.yml`, `PICASSO_EXTRA_COMMANDS` (the index-add already
+   present for mfe/sentry covers it):
+
+   ```yaml
+   - tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/main/
+   - tutor plugins install mfe mfe-extensions sentry aspects edunext-security-patches
+   - tutor plugins enable edunext-security-patches
+   ```
+
+3. Remove the corresponding `.patch` files and their `COPY/git apply` lines from
+   `build/plugins/azimutcli-apply-src-plugin.yml`. Rebuild with Picasso.
+
+- The **version pin** lives in the index `src`. **Prod rule:** pin an immutable tag
+  (`@teak/v1.0.0`), never a branch — a branch HEAD moves and breaks reproducible
+  builds. Bump the index line to roll a new set; per-release index dirs already exist
+  for every release (`teak/`, `sumac/`, …), so adding a release = one line, no
+  per-repo index files.
 
 ## Update a monorepo on a new CVE
 

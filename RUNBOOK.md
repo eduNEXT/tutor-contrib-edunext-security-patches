@@ -11,15 +11,22 @@ Phase 4 is the real deploy path; Phase 5 proves the release story.
 ## Phase 0 — publish (prerequisite for 4)
 
 ```bash
+# 1) publish the plugin (branch is enough for POC; the index src pins @teak)
 cd tutor-contrib-edunext-security-patches
-git push -u origin teak            # branch is enough for the POC (plugins.yml pins @teak)
-# tag only needed to test the release model / for prod reproducibility:
-# git tag teak/v1.0.0 && git push origin teak/v1.0.0   # then set plugins.yml src -> @teak/v1.0.0
+git push -u origin teak
+# tag only needed for the release model / prod reproducibility:
+# git tag teak/v1.0.0 && git push origin teak/v1.0.0   # then set index src -> @teak/v1.0.0
+
+# 2) register in the central index (eduNEXT/tutor-plugin-indexes), branch off main,
+#    add one line to teak/plugins.yml (git src), push the branch:
+#    - name: edunext-security-patches
+#      src: 'git+https://github.com/eduNEXT/tutor-contrib-edunext-security-patches@teak'
 ```
 
-Needed because: the self-hosted index URL resolves to
-`raw.githubusercontent.com/…/teak/plugins.yml` (branch must be pushed), and the
-index `src` currently pins `@teak` (branch). Switch to a tag for Phases 2/5.
+Needed because: picasso rejects raw `pip install git+…`, so the plugin must come from
+an index. The plugin repo does NOT self-host an index — the entry lives in the central
+`eduNEXT/tutor-plugin-indexes` (per-release `<release>/plugins.yml`, already maintained
+for every plugin). Switch the index `src` to a tag for Phases 2/5.
 
 ---
 
@@ -80,10 +87,11 @@ PASS: green on valid set, red on broken patch.
 
 ## Phase 4 — index + picasso end-to-end (real deploy path)
 
-Already wired in `santodomingo/build/config.yml`:
+Already wired in `santodomingo/build/config.yml` (index-add points at the central
+index branch holding the entry; switch to `main` once the index PR merges):
 
 ```yaml
-- tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-contrib-edunext-security-patches/teak/
+- tutor plugins index add https://raw.githubusercontent.com/eduNEXT/tutor-plugin-indexes/poc/add-security-patches/
 - tutor plugins install mfe mfe-extensions sentry aspects edunext-security-patches
 - tutor plugins enable edunext-security-patches
 ```
