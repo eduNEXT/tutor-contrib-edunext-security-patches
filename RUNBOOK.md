@@ -8,17 +8,18 @@ Phase 4 is the real deploy path; Phase 5 proves the release story.
 
 ---
 
-## Phase 0 — publish (prerequisite for 2/4/5)
+## Phase 0 — publish (prerequisite for 4)
 
 ```bash
 cd tutor-contrib-edunext-security-patches
-git push -u origin teak
-git tag teak/v1.0.0 && git push origin teak/v1.0.0
+git push -u origin teak            # branch is enough for the POC (plugins.yml pins @teak)
+# tag only needed to test the release model / for prod reproducibility:
+# git tag teak/v1.0.0 && git push origin teak/v1.0.0   # then set plugins.yml src -> @teak/v1.0.0
 ```
 
 Needed because: the self-hosted index URL resolves to
 `raw.githubusercontent.com/…/teak/plugins.yml` (branch must be pushed), and the
-index `src` pins `@teak/v1.0.0` (tag must be pushed).
+index `src` currently pins `@teak` (branch). Switch to a tag for Phases 2/5.
 
 ---
 
